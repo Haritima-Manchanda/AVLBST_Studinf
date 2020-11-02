@@ -36,7 +36,7 @@ void StudentTreeInfo::Interface() {
 			cin >> f;
 			TNode *t = tree->find(l,f);
 			if (t == NULL) {
-				char k;
+				//char k; //FIXME
 				cout << f << " " << l <<" not found in database.  " << endl;
 			}
 			else {
@@ -74,7 +74,7 @@ void StudentTreeInfo::Interface() {
 			}
 			break;
 		}
-		case 'c': {
+		/*case 'c': {
 			cout << "Enter Last: "<<endl;
 			string l;
 			cin >> l;
@@ -90,7 +90,7 @@ void StudentTreeInfo::Interface() {
 				cout << " ...has been removed. "<<endl;
 			}
 			break;
-		}
+		}*/
 		case 'd': {
 			cout << "Choose a for pre, b for in, or c for post-order\t";
 			char k;

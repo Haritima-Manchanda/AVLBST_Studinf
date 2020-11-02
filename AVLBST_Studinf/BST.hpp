@@ -35,6 +35,11 @@ public:
 	int getBalance(TNode *tmp);
 	TNode *rotateRight(TNode *tmp);
 	TNode *rotateLeft(TNode *tmp);
+
+
+	void updateHeightRootNoKids(TNode* temp);
+	void updateHeightRootOneKid(TNode* temp);
+
 };
 
 
