@@ -2,7 +2,7 @@
  * BST.cpp
  *
  *  Created on: Nov 2, 2020
- *      Author: harit
+ *      Author: Haritima Manchanda
  */
 
 #include "BST.hpp"
@@ -111,8 +111,8 @@ bool BST::insert(string sarr[]){
 
 		else if(s == n->student->last){
 			// last name is same. Do comparison by first name.
-			s = n->student->first;
 			n = root;
+			s = n->student->first;
 
 			while(n != NULL){
 				if(s < n->student->first){
@@ -190,8 +190,6 @@ TNode* BST::find(string l, string f){
 
 void BST::printTreeIO(TNode *n){
 
-	// In-order Traversal: left, parent, right
-
 	if(n == NULL){
 		return;
 	}
@@ -203,8 +201,6 @@ void BST::printTreeIO(TNode *n){
 }
 
 void BST::printTreePre(TNode *n){
-
-	// Pre-order Traversal: parent, left, right
 
 	if(n == NULL){
 		return;
@@ -218,8 +214,6 @@ void BST::printTreePre(TNode *n){
 
 void BST::printTreePost(TNode *n){
 
-	//Post-order Traversal: left, right, parent
-
 	if(n == NULL){
 		return;
 	}
@@ -230,8 +224,287 @@ void BST::printTreePost(TNode *n){
 	}
 }
 
-/*
-TNode* BST::remove(string s){
+void BST::setHeight(TNode* n){
+
+	if(n == root){
+		if(n->left != NULL || n->right != NULL)
+			updateHeightRootOneKid(n);
+		else
+			updateHeightRootNoKids(n);
+		return;
+	}
+
+	n->height = 1;
+	TNode* tmp = n->parent;
+	int updatedHeight = 0;
+	int max = 0;
+
+	while(n != root){
+		if(tmp->left == NULL && tmp->right != NULL){
+			max = tmp->right->height;
+		}
+		else if(tmp->right == NULL && tmp->left != NULL){
+			max = tmp->left->height;
+		}
+		else if(tmp->left->height >= tmp->right->height){
+			max = tmp->left->height;
+		}
+		else if(tmp->right->height > tmp->left->height){
+			max = tmp->right->height;
+		}
+		updatedHeight = max + 1;
+
+		if(tmp->height != updatedHeight){
+			tmp->height = updatedHeight;
+
+			// Call the appropriate rotation methods based on the balance of the node
+
+			if (getBalance(tmp) < -1 && getBalance(tmp->right) == -1){
+				TNode* node = rotateLeft(tmp);
+				n = tmp;
+				tmp = node;
+			}
+
+			else if (getBalance(tmp) > 1 && getBalance(tmp->left) == 1){
+				TNode* node = rotateRight(tmp);
+				n = tmp;
+				tmp = node;
+			}
+
+			else if (getBalance(tmp) < -1 && getBalance(tmp->right) == 1){
+				rotateRight(tmp->right);
+
+				tmp = rotateLeft(tmp);
+			}
+
+			else if(getBalance(tmp) > 1 && getBalance(tmp->left) == -1){
+				rotateLeft(tmp->left);
+
+				tmp = rotateRight(tmp);
+			}
+
+			else{
+				n = n->parent;
+				tmp = tmp->parent;
+			}
+		}
+		else
+			return;
+	}
+}
+
+void BST::updateHeightRootNoKids(TNode *temp){
+
+	int updatedHeight = 0;
+	int max = 0;
+
+	while(temp != root){
+		if(temp->left == NULL && temp->right == NULL){
+			temp->height = 1;
+			updatedHeight = 1;
+		}
+		else if(temp->left == NULL && temp->right != NULL){
+			max = temp->right->height;
+			updatedHeight = max + 1;
+		}
+		else if(temp->left != NULL && temp->right == NULL){
+			max = temp->left->height;
+			updatedHeight = max + 1;
+		}
+
+		if(temp->height != updatedHeight){
+			temp->height = updatedHeight;
+			temp = temp->parent;
+		}
+
+		else{
+			return;
+		}
+	}
+}
+
+void BST::updateHeightRootOneKid(TNode* n){
+	int updatedHeight = 0;
+	int max = 0;
+
+	while(n != NULL){
+		if(n->left == NULL && n->right != NULL){
+			max = n->right->height;
+		}
+		else if(n->right == NULL && n->left != NULL){
+			max = n->left->height;
+		}
+		else if(n->left->height >= n->right->height){
+			max = n->left->height;
+		}
+		else if(n->right->height > n->left->height){
+			max = n->right->height;
+		}
+
+		updatedHeight = max + 1;
+
+		if(n->height != updatedHeight){
+			n->height = updatedHeight;
+			n = n->parent;
+		}
+
+		else{
+			return;
+		}
+	}
+}
+
+int BST::getBalance(TNode* tmp){
+
+	if(tmp == NULL || (tmp->left == NULL && tmp->right == NULL)){
+		return 0;
+	}
+
+	if(tmp->left == NULL && tmp->right != NULL){
+		return (-1 * tmp->right->height);
+	}
+
+	else if(tmp->right == NULL && tmp->left != NULL){
+		return (tmp->left->height);
+	}
+
+	return (tmp->left->height - tmp->right->height);
+}
+
+TNode* BST::rotateLeft(TNode* tmp){
+
+	TNode* tmp2 = tmp->right;
+
+	//Perform rotations
+	tmp->right = tmp2->left;
+	if(tmp2->left != NULL)
+		tmp2->left->parent = tmp;
+	tmp2->left = tmp;
+
+	if(tmp == root){
+		root = tmp2;
+		tmp2->parent = NULL;
+		tmp->parent = tmp2;
+	}
+
+	else{
+		if(tmp->parent->left == tmp)
+			tmp->parent->left = tmp2;
+
+		else if(tmp->parent->right == tmp)
+			tmp->parent->right = tmp2;
+
+		tmp2->parent = tmp->parent;
+		tmp->parent = tmp2;
+	}
+
+	// Update Heights
+	if(tmp->left == NULL && tmp->right == NULL)
+		tmp->height = 1;
+
+	else if(tmp->left == NULL && tmp->right != NULL)
+		tmp->height = tmp->right->height + 1;
+
+	else if(tmp->right == NULL && tmp->left != NULL)
+		tmp->height = tmp->left->height + 1;
+
+	else{
+		if(tmp->left->height > tmp->right->height){
+			tmp->height = tmp->left->height + 1;
+		}
+		else{
+			tmp->height = tmp->right->height + 1;
+		}
+	}
+
+	if(tmp2->left == NULL && tmp2->right == NULL)
+		tmp2->height = 1;
+
+	else if(tmp2->left == NULL && tmp2->right != NULL)
+		tmp2->height = tmp2->right->height + 1;
+
+	else if(tmp2->right == NULL && tmp2->left != NULL)
+		tmp2->height = tmp2->left->height + 1;
+
+	else{
+		if(tmp2->left->height > tmp2->right->height){
+			tmp2->height = tmp2->left->height + 1;
+		}
+		else{
+			tmp2->height = tmp2->right->height + 1;
+		}
+	}
+
+	return tmp2;
+}
+
+TNode* BST::rotateRight(TNode* tmp){
+
+	TNode* tmp2 = tmp->left;
+
+	tmp->left = tmp2->right;
+	if(tmp2->right != NULL){
+		tmp2->right->parent = tmp;
+	}
+	tmp2->right = tmp;
+
+	if(tmp == root){
+		root = tmp2;
+		tmp2->parent = NULL;
+		tmp->parent = tmp2;
+	}
+
+	else{
+		if(tmp->parent->left == tmp)
+			tmp->parent->left = tmp2;
+
+		else if(tmp->parent->right == tmp)
+			tmp->parent->right = tmp2;
+
+		tmp2->parent = tmp->parent;
+		tmp->parent = tmp2;
+	}
+
+	// Update Heights
+	if(tmp->left == NULL && tmp->right == NULL)
+		tmp->height = 1;
+
+	else if(tmp->left == NULL && tmp->right != NULL)
+		tmp->height = tmp->right->height + 1;
+
+	else if(tmp->right == NULL && tmp->left != NULL)
+		tmp->height = tmp->left->height + 1;
+
+	else{
+		if(tmp->left->height > tmp->right->height){
+			tmp->height = tmp->left->height + 1;
+		}
+		else{
+			tmp->height = tmp->right->height + 1;
+		}
+	}
+
+	if(tmp2->left == NULL && tmp2->right == NULL)
+		tmp2->height = 1;
+
+	else if(tmp2->left == NULL && tmp2->right != NULL)
+		tmp2->height = tmp2->right->height + 1;
+
+	else if(tmp2->right == NULL && tmp2->left != NULL)
+		tmp2->height = tmp2->left->height + 1;
+
+	else{
+		if(tmp2->left->height > tmp2->right->height){
+			tmp2->height = tmp2->left->height + 1;
+		}
+		else{
+			tmp2->height = tmp2->right->height + 1;
+		}
+	}
+	return tmp2;
+}
+
+TNode* BST::remove(string s, string l){
 
 	if(root == NULL){
 		return NULL;
@@ -242,7 +515,7 @@ TNode* BST::remove(string s){
 		TNode *deletedNode = NULL;
 
 		while(n != NULL){
-			if(s == n->data->phrase){ //data to be removed is found
+			if(s == n->student->last && l == n->student->first){ //data to be removed is found
 
 				// 3 Cases: Node to be removed has 0, 1 or 2 children
 
@@ -268,7 +541,8 @@ TNode* BST::remove(string s){
 				else if(n->left != NULL && n->right != NULL){
 
 					TNode *temp = rightMostLeftTree(n->left);	// Helper function to find the rightmost of the left sub-tree.
-					n->data->phrase = temp->data->phrase;		// Replaces the node's phrase (to be removed node) with temp's phrase
+					n->student->last = temp->student->last;		// Replaces the node's phrase (to be removed node) with temp's phrase
+					n->student->first = temp->student->first; //FIXME
 
 					if(temp->left == NULL && temp->right == NULL){
 						removeNoKids(temp);
@@ -283,7 +557,7 @@ TNode* BST::remove(string s){
 					}
 				}
 			}
-			else if(s > n->data->phrase){
+			else if(s > n->student->last){
 				n = n->right;
 			}
 			else{
@@ -353,106 +627,3 @@ TNode* BST::rightMostLeftTree(TNode* temp){
 
 	return temp;
 }
-*/
-void BST::setHeight(TNode* n){
-
-	if(n == root){
-		if(n->left != NULL || n->right != NULL)
-			updateHeightRootOneKid(n);
-		else
-			updateHeightRootNoKids(n);
-		return;
-	}
-
-	n->height = 1;
-	TNode* tmp = n->parent;
-	int updatedHeight = 0;
-	int max = 0;
-
-	while(n != root){
-		if(tmp->left == NULL && tmp->right != NULL){
-			max = tmp->right->height;
-		}
-		else if(tmp->right == NULL && tmp->left != NULL){
-			max = tmp->left->height;
-		}
-		else if(tmp->left->height >= tmp->right->height){
-			max = tmp->left->height;
-		}
-		else if(tmp->right->height > tmp->left->height){
-			max = tmp->right->height;
-		}
-		updatedHeight = max + 1;
-
-		if(tmp->height != updatedHeight){
-			tmp->height = updatedHeight;
-			n = n->parent;
-			tmp = tmp->parent;
-		}
-		else{
-			return;
-		}
-	}
-
-	return;
-}
-
-void BST::updateHeightRootNoKids(TNode *temp){
-
-	int updatedHeight = 0;
-	int max = 0;
-
-	while(temp != root){
-		if(temp->left == NULL && temp->right == NULL){
-			temp->height = 1;
-			updatedHeight = 1;
-		}
-		else if(temp->left == NULL && temp->right != NULL){
-			max = temp->right->height;
-			updatedHeight = max + 1;
-		}
-		else if(temp->left != NULL && temp->right == NULL){
-			max = temp->left->height;
-			updatedHeight = max + 1;
-		}
-
-		if(temp->height != updatedHeight){
-			temp->height = updatedHeight;
-			temp = temp->parent;
-		}
-		else{
-			return;
-		}
-	}
-}
-
-void BST::updateHeightRootOneKid(TNode* n){
-	int updatedHeight = 0;
-	int max = 0;
-
-	while(n != NULL){
-		if(n->left == NULL && n->right != NULL){
-			max = n->right->height;
-		}
-		else if(n->right == NULL && n->left != NULL){
-			max = n->left->height;
-		}
-		else if(n->left->height >= n->right->height){
-			max = n->left->height;
-		}
-		else if(n->right->height > n->left->height){
-			max = n->right->height;
-		}
-
-		updatedHeight = max + 1;
-
-		if(n->height != updatedHeight){
-			n->height = updatedHeight;
-			n = n->parent;
-		}
-		else{
-			return;
-		}
-	}
-}
-

@@ -39,7 +39,7 @@ public:
 
 	void updateHeightRootNoKids(TNode* temp);
 	void updateHeightRootOneKid(TNode* temp);
-
+	TNode* rightMostLeftTree(TNode* temp);
 };
 
 
