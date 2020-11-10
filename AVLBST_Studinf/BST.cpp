@@ -5,8 +5,8 @@
  *      Author: Haritima Manchanda
  */
 
-#include "BST.hpp"
 #include <iostream>
+#include "BST.hpp"
 #include <stdlib.h>
 using namespace std;
 
@@ -85,11 +85,12 @@ bool BST::insert(string sarr[]){
 	}
 
 	TNode *n = root;
-	string s = newNode->student->last;
+	string l = newNode->student->last;
+	string f = newNode->student->first;
 
 	while(n != NULL){
 
-		if(s < n->student->last){
+		if(l < n->student->last){
 			if(n->left == NULL){
 				newNode->parent = n;
 				n->left = newNode;
@@ -99,7 +100,7 @@ bool BST::insert(string sarr[]){
 			n = n->left;
 		}
 
-		else if(s > n->student->last){
+		else if(l > n->student->last){
 			if(n->right == NULL){
 				newNode->parent = n;
 				n->right = newNode;
@@ -109,37 +110,34 @@ bool BST::insert(string sarr[]){
 			n = n->right;
 		}
 
-		else if(s == n->student->last){
+		else if(l == n->student->last){
 			// last name is same. Do comparison by first name.
-			n = root;
-			s = n->student->first;
 
-			while(n != NULL){
-				if(s < n->student->first){
-					if(n->left == NULL){
-						newNode->parent = n;
-						n->left = newNode;
-						setHeight(newNode);
-						return true;
-					}
-					n = n->left;
-				}
-
-				else if(s > n->student->first){
-					if(n->right == NULL){
-						newNode->parent = n;
-						n->right = newNode;
-						setHeight(newNode);
-						return true;
-					}
-					n = n->right;
-				}
-				else{
-					// Already Present
+			if(f < n->student->first){
+				if(n->left == NULL){
+					newNode->parent = n;
+					n->left = newNode;
+					setHeight(newNode);
 					return true;
 				}
+				n = n->left;
 			}
+
+			else if(f > n->student->first){
+				if(n->right == NULL){
+					newNode->parent = n;
+					n->right = newNode;
+					setHeight(newNode);
+					return true;
+				}
+				n = n->right;
+			}
+			else
+				return true;
 		}
+
+		else
+			return false;
 	}
 
 	return false;
@@ -156,27 +154,21 @@ TNode* BST::find(string l, string f){
 	TNode *n = root;
 
 	while(n != NULL){
-		if(l == n->student->last && f == n->student->first){
-			return n;
-		}
+		if(l == n->student->last){
+			if(f == n->student->first)
+				return n;
 
-		else if(l == n->student->last){
-			n = root;
-			while(n != NULL){
-				if(f > n->student->first){
-					n = n->right;
-				}
-				else if(f < n->student->first){
-					n = n->left;
-				}
-				else
-					return n;
-			}
+			else if(f > n->student->first)
+				n = n->right;
+
+			else if(f < n->student->first)
+				n = n->left;
 		}
 
 		else if(l > n->student->last){
 			n = n->right;
 		}
+
 		else if(l < n->student->last){
 			n = n->left;
 		}
@@ -186,6 +178,7 @@ TNode* BST::find(string l, string f){
 
 	return NULL;
 }
+
 
 
 void BST::printTreeIO(TNode *n){
@@ -240,6 +233,7 @@ void BST::setHeight(TNode* n){
 	int max = 0;
 
 	while(n != root){
+
 		if(tmp->left == NULL && tmp->right != NULL){
 			max = tmp->right->height;
 		}
@@ -260,26 +254,28 @@ void BST::setHeight(TNode* n){
 			// Call the appropriate rotation methods based on the balance of the node
 
 			if (getBalance(tmp) < -1 && getBalance(tmp->right) == -1){
+				// Left Rotation
 				TNode* node = rotateLeft(tmp);
 				n = tmp;
 				tmp = node;
 			}
 
 			else if (getBalance(tmp) > 1 && getBalance(tmp->left) == 1){
+				// Right Rotation
 				TNode* node = rotateRight(tmp);
 				n = tmp;
 				tmp = node;
 			}
 
 			else if (getBalance(tmp) < -1 && getBalance(tmp->right) == 1){
+				// RL rotation
 				rotateRight(tmp->right);
-
 				tmp = rotateLeft(tmp);
 			}
 
 			else if(getBalance(tmp) > 1 && getBalance(tmp->left) == -1){
+				// LR rotation
 				rotateLeft(tmp->left);
-
 				tmp = rotateRight(tmp);
 			}
 
@@ -312,14 +308,29 @@ void BST::updateHeightRootNoKids(TNode *temp){
 			updatedHeight = max + 1;
 		}
 
-		if(temp->height != updatedHeight){
-			temp->height = updatedHeight;
-			temp = temp->parent;
+		temp->height = updatedHeight;
+
+		if (getBalance(temp) < -1 && getBalance(temp->right) == -1){
+			TNode* node = rotateLeft(temp);
+			temp = node;
 		}
 
-		else{
-			return;
+		else if (getBalance(temp) > 1 && getBalance(temp->left) == 1){
+			TNode* node = rotateRight(temp);
+			temp = node;
 		}
+
+		else if (getBalance(temp) < -1 && getBalance(temp->right) == 1){
+			rotateRight(temp->right);
+			temp = rotateLeft(temp);
+		}
+
+		else if(getBalance(temp) > 1 && getBalance(temp->left) == -1){
+			rotateLeft(temp->left);
+			temp = rotateRight(temp);
+		}
+		else
+			temp = temp->parent;
 	}
 }
 
@@ -343,14 +354,29 @@ void BST::updateHeightRootOneKid(TNode* n){
 
 		updatedHeight = max + 1;
 
-		if(n->height != updatedHeight){
-			n->height = updatedHeight;
-			n = n->parent;
+		n->height = updatedHeight;
+
+		if (getBalance(n) < -1 && getBalance(n->right) == -1){
+			TNode* node = rotateLeft(n);
+			n = node;
 		}
 
-		else{
-			return;
+		else if (getBalance(n) > 1 && getBalance(n->left) == 1){
+			TNode* node = rotateRight(n);
+			n = node;
 		}
+
+		else if (getBalance(n) < -1 && getBalance(n->right) == 1){
+			rotateRight(n->right);
+			n = rotateLeft(n);
+		}
+
+		else if(getBalance(n) > 1 && getBalance(n->left) == -1){
+			rotateLeft(n->left);
+			n = rotateRight(n);
+		}
+		else
+			n = n->parent;
 	}
 }
 
@@ -377,8 +403,10 @@ TNode* BST::rotateLeft(TNode* tmp){
 
 	//Perform rotations
 	tmp->right = tmp2->left;
+
 	if(tmp2->left != NULL)
 		tmp2->left->parent = tmp;
+
 	tmp2->left = tmp;
 
 	if(tmp == root){
@@ -504,71 +532,103 @@ TNode* BST::rotateRight(TNode* tmp){
 	return tmp2;
 }
 
-TNode* BST::remove(string s, string l){
-
+TNode* BST::remove(string l, string f){
+	cout<<"Entering remove"<<endl;
 	if(root == NULL){
 		return NULL;
 	}
 
-	else{
-		TNode *n = root;
-		TNode *deletedNode = NULL;
+	cout<<"Not a root. Going into while"<<endl;
+	TNode* n = root;
 
-		while(n != NULL){
-			if(s == n->student->last && l == n->student->first){ //data to be removed is found
+	while(n != NULL){
+		if(l == n->student->last && f == n->student->first){ //data to be removed is found
 
-				// 3 Cases: Node to be removed has 0, 1 or 2 children
+			// 3 Cases: Node to be removed has 0, 1 or 2 children
 
-				// Case 1: No child
-				if(n->left == NULL && n->right == NULL){
-					deletedNode = removeNoKids(n);
+			// Case 1: No child
+			if(n->left == NULL && n->right == NULL){
+				cout<<"NO CHILD CASE"<<endl;
+				TNode* deletedNode = removeNoKids(n);
+				return deletedNode;
+			}
+
+			// Case 2: 1 child
+			else if(n->left == NULL && n->right != NULL){
+				// It has a right child
+				cout<<"1 child case - RIGHT CHILD"<<endl;
+				TNode* deletedNode = removeOneKid(n, false);
+				return deletedNode;
+			}
+			else if(n->left != NULL && n->right == NULL){
+				// It has a left child
+				cout<<"1 child case - LEFT CHILD"<<endl;
+				TNode* deletedNode = removeOneKid(n, true);
+				return deletedNode;
+			}
+
+			// Case 3: It has 2 children
+			else if(n->left != NULL && n->right != NULL){
+
+				TNode *temp = rightMostLeftTree(n->left);	// Helper function to find the rightmost of the left sub-tree.
+				TNode* deletedNode = new TNode();
+				deletedNode->student->last = n->student->last;		// Replaces the node's data with temp's data
+				deletedNode->student->first = n->student->first;
+				deletedNode->student->ate = n->student->ate;
+				deletedNode->student->dessert = n->student->dessert;
+				deletedNode->student->invent = n->student->dessert;
+				deletedNode->student->strange = n->student->strange;
+				deletedNode->student->numstuff = n->student->numstuff;
+
+				n->student->last = temp->student->last;		// Replaces the node's data with temp's data
+				n->student->first = temp->student->first;
+				n->student->ate = temp->student->ate;
+				n->student->dessert = temp->student->dessert;
+				n->student->invent = temp->student->dessert;
+				n->student->strange = temp->student->strange;
+				n->student->numstuff = temp->student->numstuff;
+
+				if(temp->left == NULL && temp->right == NULL){
+					removeNoKids(temp);
+					cout<<"Removing No Kids"<<endl;
 					return deletedNode;
 				}
-
-				// Case 2: 1 child
-				else if(n->left == NULL && n->right != NULL){
+				else if(temp->left == NULL && temp->right != NULL){
 					// It has a right child
-					deletedNode = removeOneKid(n, false);
+					cout<<"Removing, No left Child"<<endl;
+					removeOneKid(temp, false);
 					return deletedNode;
 				}
-				else if(n->left != NULL && n->right == NULL){
+				else if(temp->left != NULL && temp->right == NULL){
 					// It has a left child
-					deletedNode = removeOneKid(n, true);
+					cout<<"Removing No Right Child"<<endl;
+					removeOneKid(temp, true);
+					cout<<"Returning deleted Node"<<endl;
 					return deletedNode;
 				}
-
-				// Case 3: It has 2 children
-				else if(n->left != NULL && n->right != NULL){
-
-					TNode *temp = rightMostLeftTree(n->left);	// Helper function to find the rightmost of the left sub-tree.
-					n->student->last = temp->student->last;		// Replaces the node's phrase (to be removed node) with temp's phrase
-					n->student->first = temp->student->first; //FIXME
-
-					if(temp->left == NULL && temp->right == NULL){
-						removeNoKids(temp);
-					}
-					else if(temp->left == NULL && temp->right != NULL){
-						// It has a right child
-						removeOneKid(temp, false);
-					}
-					else if(temp->left != NULL && temp->right == NULL){
-						// It has a left child
-						removeOneKid(temp, true);
-					}
-				}
-			}
-			else if(s > n->student->last){
-				n = n->right;
-			}
-			else{
-				n = n->left;
 			}
 		}
-	}
 
+		else if(l > n->student->last){
+			n = n->right;
+		}
+
+		else if(l < n->student->first){
+			n = n->left;
+		}
+
+		else if(f != n->student->first){
+
+			if(f < n->student->first)
+				n = n->left;
+
+			else if(f > n->student->first)
+				n = n->right;
+		}
+	}
+	cout<<"End of remove"<<endl;
 	return NULL;
 }
-
 
 TNode* BST::removeNoKids(TNode *tmp){
 
@@ -576,12 +636,18 @@ TNode* BST::removeNoKids(TNode *tmp){
 
 	if(tmp->parent->left == tmp){
 		tmp->parent->left = NULL;
-		setHeight(tmp->parent);
+		if(tmp->parent->right == NULL)
+			setHeight(tmp->parent);
+		else
+			updateHeightRootNoKids(tmp->parent);
 		tmp->parent = NULL;
 	}
-	else{
+	else if(tmp->parent->right == tmp){
 		tmp->parent->right = NULL;
-		setHeight(tmp->parent);
+		if(tmp->parent->left == NULL)
+			setHeight(tmp->parent);
+		else
+			updateHeightRootNoKids(tmp->parent);
 		tmp->parent = NULL;
 	}
 
@@ -589,15 +655,17 @@ TNode* BST::removeNoKids(TNode *tmp){
 }
 
 TNode* BST::removeOneKid(TNode *tmp, bool leftFlag){
-
+	cout<<"Entering Remove One Kid"<<endl;
 	if(leftFlag){
 		tmp->left->parent = tmp->parent;
 
 		if(tmp->parent->left == tmp){
 			tmp->parent->left = tmp->left;
+			setHeight(tmp->parent->left);
 		}
 		else{
 			tmp->parent->right = tmp->left;
+			setHeight(tmp->parent->right);
 		}
 	}
 
@@ -606,15 +674,17 @@ TNode* BST::removeOneKid(TNode *tmp, bool leftFlag){
 
 		if(tmp->parent->left == tmp){
 			tmp->parent->left = tmp->right;
+			setHeight(tmp->parent->left);
 		}
 		else{
 			tmp->parent->right = tmp->right;
+			setHeight(tmp->parent->right);
 		}
 	}
 
-	setHeight(tmp);
 	tmp->left = tmp->right = tmp->parent = NULL;
 
+	cout<<"Exiting Remove One Kid"<<endl;
 	return tmp;
 }
 
@@ -627,3 +697,4 @@ TNode* BST::rightMostLeftTree(TNode* temp){
 
 	return temp;
 }
+
